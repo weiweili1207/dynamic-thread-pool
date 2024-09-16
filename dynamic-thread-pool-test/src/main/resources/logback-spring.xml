@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Log Level Explanation TRACE < DEBUG < INFO < WARN < ERROR < FATAL，If the log level is set to WARN, any log messages below WARN will not be logged.-->
+<configuration scan="true" scanPeriod="10 seconds">
+
+    <contextName>logback</contextName>
+    <!-- name: variable name，value. This property can be referenced in the configuration using ${log.path}. -->
+    <springProperty scope="context" name="log.path" source="logging.path"/>
+    <!-- log formatting -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!-- Logs information to the console (standard output) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- This filter restricts logs printed to the console to only those that are at least INFO level or higher. -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>info</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yy-MM-dd.HH:mm:ss.SSS} [%-16t] %-5p %-22c{0}%X{ServiceId} -%X{trace-id} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Logs INFO level messages to a file -->
+    <!-- Controls the rolling (rotation) of log files based on time and size -->
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- recording log file path -->
+        <file>./data/log/log_info.log</file>
+        <!--log file output format-->
+        <encoder>
+            <pattern>%d{yy-MM-dd.HH:mm:ss.SSS} [%-16t] %-5p %-22c{0}%X{ServiceId} -%X{trace-id} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- Controls the rolling (rotation) of log files based on time and size -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Everyday log archive path and format -->
+            <fileNamePattern>./data/log/log-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--A maximum of 15 days of logs are retained, and total log storage is capped at 10GB-->
+            <maxHistory>15</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!--  Rolling File Appender for ERROR -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- recording log path -->
+        <file>./data/log/log_error.log</file>
+        <!--log output format-->
+        <encoder>
+            <pattern>%d{yy-MM-dd.HH:mm:ss.SSS} [%-16t] %-5p %-22c{0}%X{ServiceId} -%X{trace-id} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- Controls the rolling (rotation) of log files based on time and size -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./data/log/log-error-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- A maximum of 7 days of logs are retained, and total log storage is capped at 5GB -->
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <!-- WARN level and above -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+    </appender>
+
+    <!-- Asynchronous Logging -->
+    <appender name="ASYNC_FILE_INFO" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- This enables asynchronous logging for performance, buffering log messages in a queue.
+        if the size of queue smaller than discardingThreshold,then discard TRACT、DEBUG、INFO level log; default -1,which is the 20% of queueSize; 0 don't discard log-->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- Determines the buffer size (8192 for INFO, 1024 for ERROR) -->
+        <queueSize>8192</queueSize>
+        <!-- neverBlock:true, it prevents blocking when the queue is full. Logs may be discarded instead -->
+        <neverBlock>true</neverBlock>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="INFO_FILE"/>
+    </appender>
+
+    <appender name="ASYNC_FILE_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- if the size of queue smaller than discardingThreshold,then discard TRACT、DEBUG、INFO level log; default -1,which is the 20% of queueSize; 0 don't discard log -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- Determines the buffer size (8192 for INFO, 1024 for ERROR) -->
+        <queueSize>1024</queueSize>
+        <!-- neverBlock:true it prevents blocking when the queue is full. Logs may be discarded instead -->
+        <neverBlock>true</neverBlock>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+
+    <!-- Profiles and Root Logger -->
+    <springProfile name="dev">
+        <logger name="com.nmys.view" level="debug"/>
+    </springProfile>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+        <!-- Asynchronous Logging -INFO -->
+        <appender-ref ref="ASYNC_FILE_INFO"/>
+        <!-- Asynchronous Logging -ERROR -->
+        <appender-ref ref="ASYNC_FILE_ERROR"/>
+    </root>
+
+</configuration>

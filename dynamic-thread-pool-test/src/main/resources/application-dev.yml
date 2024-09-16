@@ -1,0 +1,32 @@
+server:
+  #TODO
+  port: 8093
+
+# dynamic thread pool config
+thread:
+  pool:
+    executor:
+      config:
+        core-pool-size: 20
+        max-pool-size: 50
+        keep-alive-time: 5000
+        block-queue-size: 5000
+        policy: CallerRunsPolicy
+
+# dynamic thread pool config management
+#dynamic:
+#  thread:
+#    pool:
+#      config:
+#        # status；true = open、false close
+#        enabled: true
+#        # redis host
+#        host: 192.168.1.108
+#        # redis port
+#        port: 16379
+
+# log
+logging:
+  level:
+    root: info
+  config: classpath:logback-spring.xml

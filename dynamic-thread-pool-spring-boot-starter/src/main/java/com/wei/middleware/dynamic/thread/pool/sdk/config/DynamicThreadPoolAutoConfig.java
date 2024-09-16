@@ -1,9 +1,46 @@
 package com.wei.middleware.dynamic.thread.pool.sdk.config;
+
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+
 /*
  *@description auto config entry
  *@author wei li
  *@create 9/12/2024
  * */
+@Configuration
 public class DynamicThreadPoolAutoConfig {
+    private final Logger logger = LoggerFactory.getLogger(DynamicThreadPoolAutoConfig.class);
 
+    @Bean("dynamicThreadPoolService")
+    public String DynamicThreadPoolService(ApplicationContext applicationContext, Map<String, ThreadPoolExecutor> threadPoolExecutorMap) {
+
+        String applicationName = applicationContext.getEnvironment().getProperty("spring.application.name");
+        if (StringUtils.isBlank(applicationName)) {
+            applicationName = "Default";
+            logger.warn("Dynamic Thread Pool, Start Message. SpringBoot Application not Configure, spring.application.name cannot get name");
+        }
+
+        Set<String> threadPoolKeys = threadPoolExecutorMap.keySet();
+        for (String threadPoolKey : threadPoolKeys) {
+            ThreadPoolExecutor threadPoolExecutor = threadPoolExecutorMap.get(threadPoolKey);
+            int poolSize = threadPoolExecutor.getPoolSize();
+            int corePoolSize = threadPoolExecutor.getCorePoolSize();
+            BlockingDeque<Runnable> queue = (BlockingDeque<Runnable>) threadPoolExecutor.getQueue();
+
+        }
+        logger.info("thread pool info {}", JSON.toJSONString(threadPoolExecutorMap.keySet()));
+
+        return new String();
+    }
 }
