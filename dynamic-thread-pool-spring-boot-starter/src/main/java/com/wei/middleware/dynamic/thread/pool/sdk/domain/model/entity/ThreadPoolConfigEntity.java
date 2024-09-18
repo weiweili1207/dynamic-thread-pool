@@ -20,6 +20,8 @@ public class ThreadPoolConfigEntity {
     private int poolSize;
     /*queue type*/
     private String queueType;
+    /*queue size*/
+    private int queueSize;
     /*remain task of queue*/
     private int remainingCapacity;
 
@@ -85,6 +87,14 @@ public class ThreadPoolConfigEntity {
 
     public void setQueueType(String queueType) {
         this.queueType = queueType;
+    }
+
+    public int getQueueSize() {
+        return queueSize;
+    }
+
+    public void setQueueSize(int queueSize) {
+        this.queueSize = queueSize;
     }
 
     public int getRemainingCapacity() {

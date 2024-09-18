@@ -1,6 +1,7 @@
 package com.wei.middleware.dynamic.thread.pool.sdk.config;
 
 import com.alibaba.fastjson.JSON;
+import com.wei.middleware.dynamic.thread.pool.sdk.domain.DynamicThreadPoolService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class DynamicThreadPoolAutoConfig {
     private final Logger logger = LoggerFactory.getLogger(DynamicThreadPoolAutoConfig.class);
 
     @Bean("dynamicThreadPoolService")
-    public String DynamicThreadPoolService(ApplicationContext applicationContext, Map<String, ThreadPoolExecutor> threadPoolExecutorMap) {
+    public DynamicThreadPoolService dynamicThreadPoolService(ApplicationContext applicationContext, Map<String, ThreadPoolExecutor> threadPoolExecutorMap) {
 
         String applicationName = applicationContext.getEnvironment().getProperty("spring.application.name");
         if (StringUtils.isBlank(applicationName)) {
@@ -31,16 +32,7 @@ public class DynamicThreadPoolAutoConfig {
             logger.warn("Dynamic Thread Pool, Start Message. SpringBoot Application not Configure, spring.application.name cannot get name");
         }
 
-        Set<String> threadPoolKeys = threadPoolExecutorMap.keySet();
-        for (String threadPoolKey : threadPoolKeys) {
-            ThreadPoolExecutor threadPoolExecutor = threadPoolExecutorMap.get(threadPoolKey);
-            int poolSize = threadPoolExecutor.getPoolSize();
-            int corePoolSize = threadPoolExecutor.getCorePoolSize();
-            BlockingDeque<Runnable> queue = (BlockingDeque<Runnable>) threadPoolExecutor.getQueue();
 
-        }
-        logger.info("thread pool info {}", JSON.toJSONString(threadPoolExecutorMap.keySet()));
-
-        return new String();
+        return new DynamicThreadPoolService(applicationName, threadPoolExecutorMap);
     }
 }
