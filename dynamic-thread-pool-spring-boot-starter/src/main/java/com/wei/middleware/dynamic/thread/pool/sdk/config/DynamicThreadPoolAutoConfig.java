@@ -2,6 +2,8 @@ package com.wei.middleware.dynamic.thread.pool.sdk.config;
 
 import com.alibaba.fastjson.JSON;
 import com.wei.middleware.dynamic.thread.pool.sdk.domain.DynamicThreadPoolService;
+import com.wei.middleware.dynamic.thread.pool.sdk.registry.IRegistry;
+import com.wei.middleware.dynamic.thread.pool.sdk.registry.redis.RedisRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
@@ -49,6 +51,11 @@ public class DynamicThreadPoolAutoConfig {
         logger.info("Dynamic thread pool, registrar (redis) connection initialization completed. {} {} {}", properties.getHost(), properties.getPoolSize(), !redissonClient.isShutdown());
 
         return redissonClient;
+    }
+
+    @Bean
+    public IRegistry redisRegistry(RedissonClient redissonClient) {
+        return  new RedisRegistry(redissonClient);
     }
 
     @Bean("dynamicThreadPoolService")
