@@ -2,8 +2,10 @@ package com.wei.middleware.dynamic.thread.pool.sdk.config;
 
 import com.alibaba.fastjson.JSON;
 import com.wei.middleware.dynamic.thread.pool.sdk.domain.DynamicThreadPoolService;
+import com.wei.middleware.dynamic.thread.pool.sdk.domain.IDynamicThreadPoolService;
 import com.wei.middleware.dynamic.thread.pool.sdk.registry.IRegistry;
 import com.wei.middleware.dynamic.thread.pool.sdk.registry.redis.RedisRegistry;
+import com.wei.middleware.dynamic.thread.pool.sdk.trigger.job.ThreadPoolDataReportJob;
 import org.apache.commons.lang.StringUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
@@ -11,9 +13,12 @@ import org.redisson.config.Config;
 import org.redisson.codec.JsonJacksonCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,11 +31,13 @@ import java.util.concurrent.ThreadPoolExecutor;
  *@create 9/12/2024
  * */
 @Configuration
+@EnableConfigurationProperties(DynamicThreadPoolAutoProperties.class)
+@EnableScheduling
 public class DynamicThreadPoolAutoConfig {
     private final Logger logger = LoggerFactory.getLogger(DynamicThreadPoolAutoConfig.class);
 
     @Bean("dynamicThreadRedissonClient")
-    public RedissonClient redissonClient(DynamicThreadPoolAutoProperties properties) {
+    public RedissonClient redissonClient(@Qualifier("dynamic.thread.pool.config-com.wei.middleware.dynamic.thread.pool.sdk.config.DynamicThreadPoolAutoProperties") DynamicThreadPoolAutoProperties properties) {
         Config config = new Config();
         /*Codec can be set as needed*/
         config.setCodec(JsonJacksonCodec.INSTANCE);
@@ -69,4 +76,10 @@ public class DynamicThreadPoolAutoConfig {
 
         return new DynamicThreadPoolService(applicationName, threadPoolExecutorMap);
     }
+
+    @Bean
+    public ThreadPoolDataReportJob threadPoolDataReportJob(IDynamicThreadPoolService dynamicThreadPoolService, IRegistry registry) {
+        return new ThreadPoolDataReportJob(dynamicThreadPoolService, registry);
+    }
+
 }
