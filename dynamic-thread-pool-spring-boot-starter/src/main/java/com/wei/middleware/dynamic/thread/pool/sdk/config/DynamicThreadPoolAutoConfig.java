@@ -37,7 +37,7 @@ public class DynamicThreadPoolAutoConfig {
     private final Logger logger = LoggerFactory.getLogger(DynamicThreadPoolAutoConfig.class);
 
     @Bean("dynamicThreadRedissonClient")
-    public RedissonClient redissonClient(@Qualifier("dynamic.thread.pool.config-com.wei.middleware.dynamic.thread.pool.sdk.config.DynamicThreadPoolAutoProperties") DynamicThreadPoolAutoProperties properties) {
+    public RedissonClient redissonClient(@Qualifier("dynamicThreadPoolAutoProperties") DynamicThreadPoolAutoProperties properties) {
         Config config = new Config();
         /*Codec can be set as needed*/
         config.setCodec(JsonJacksonCodec.INSTANCE);
