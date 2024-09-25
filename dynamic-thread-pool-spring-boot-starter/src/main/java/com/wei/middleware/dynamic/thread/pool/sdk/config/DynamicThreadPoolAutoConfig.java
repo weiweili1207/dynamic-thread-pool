@@ -3,11 +3,15 @@ package com.wei.middleware.dynamic.thread.pool.sdk.config;
 import com.alibaba.fastjson.JSON;
 import com.wei.middleware.dynamic.thread.pool.sdk.domain.DynamicThreadPoolService;
 import com.wei.middleware.dynamic.thread.pool.sdk.domain.IDynamicThreadPoolService;
+import com.wei.middleware.dynamic.thread.pool.sdk.domain.model.entity.ThreadPoolConfigEntity;
+import com.wei.middleware.dynamic.thread.pool.sdk.domain.model.valobj.RegistryEnumVO;
 import com.wei.middleware.dynamic.thread.pool.sdk.registry.IRegistry;
 import com.wei.middleware.dynamic.thread.pool.sdk.registry.redis.RedisRegistry;
 import com.wei.middleware.dynamic.thread.pool.sdk.trigger.job.ThreadPoolDataReportJob;
+import com.wei.middleware.dynamic.thread.pool.sdk.trigger.listener.ThreadPoolConfigAdjustListener;
 import org.apache.commons.lang.StringUtils;
 import org.redisson.Redisson;
+import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.redisson.codec.JsonJacksonCodec;
@@ -35,6 +39,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableScheduling
 public class DynamicThreadPoolAutoConfig {
     private final Logger logger = LoggerFactory.getLogger(DynamicThreadPoolAutoConfig.class);
+
+    private String applicationName;
 
     @Bean("dynamicThreadRedissonClient")
     public RedissonClient redissonClient(@Qualifier("dynamicThreadPoolAutoProperties") DynamicThreadPoolAutoProperties properties) {
@@ -68,7 +74,7 @@ public class DynamicThreadPoolAutoConfig {
     @Bean("dynamicThreadPoolService")
     public DynamicThreadPoolService dynamicThreadPoolService(ApplicationContext applicationContext, Map<String, ThreadPoolExecutor> threadPoolExecutorMap) {
 
-        String applicationName = applicationContext.getEnvironment().getProperty("spring.application.name");
+        applicationName = applicationContext.getEnvironment().getProperty("spring.application.name");
         if (StringUtils.isBlank(applicationName)) {
             applicationName = "Default";
             logger.warn("Dynamic Thread Pool, Start Message. SpringBoot Application not Configure, spring.application.name cannot get name");
@@ -80,6 +86,18 @@ public class DynamicThreadPoolAutoConfig {
     @Bean
     public ThreadPoolDataReportJob threadPoolDataReportJob(IDynamicThreadPoolService dynamicThreadPoolService, IRegistry registry) {
         return new ThreadPoolDataReportJob(dynamicThreadPoolService, registry);
+    }
+
+    @Bean
+    public ThreadPoolConfigAdjustListener threadPoolConfigAdjustListener(IDynamicThreadPoolService dynamicThreadPoolService, IRegistry registry) {
+        return new ThreadPoolConfigAdjustListener(dynamicThreadPoolService, registry);
+    }
+
+    @Bean(name = "dynamicThreadPoolRedisTopic")
+    public RTopic threadPoolConfigAdjustListener(RedissonClient redissonClient, ThreadPoolConfigAdjustListener threadPoolConfigAdjustListener) {
+        RTopic topic = redissonClient.getTopic(RegistryEnumVO.DYNAMIC_THREAD_POOL_REDIS_TOPIC.getKey() + "_" + applicationName);
+        topic.addListener(ThreadPoolConfigEntity.class, threadPoolConfigAdjustListener);
+        return topic;
     }
 
 }
